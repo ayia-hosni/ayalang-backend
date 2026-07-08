@@ -44,18 +44,59 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Running with Docker
+
+`docker-compose.yml` in this repo brings up the backend along with a
+postgres database:
+
+```bash
+docker compose up --build
+```
+
+Once running:
+
+- Backend: http://localhost:3333
+- Postgres: localhost:5432
+
+Config for the docker setup lives in `docker/`:
+
+- `docker/configs/` — env vars for the `postgres` and `backend` containers
+- `docker/entrypoints/` — `backend-entrypoint.sh` waits for postgres to be
+  ready before starting the app (wired in as this repo's `Dockerfile`
+  `ENTRYPOINT`)
+
 ## Run tests
 
 ```bash
-# unit tests
+# unit tests (mocked repositories/services, no external dependencies)
 $ npm run test
 
-# e2e tests
+# e2e tests (hits a real Postgres database, see below)
 $ npm run test:e2e
 
 # test coverage
 $ npm run test:cov
 ```
+
+Unit tests mock TypeORM repositories and external services (S3, bcrypt, JWT), so they
+run without any infrastructure.
+
+E2E tests boot the full Nest application against a real Postgres database (schema is
+auto-synced, `S3Service` is swapped for a mock so no AWS calls are made). Config is read
+from `.env.test`, but any variable already present in the environment (e.g. set by CI or
+your shell) takes precedence. To run them locally:
+
+```bash
+createdb aya_interviewer_test   # once, if it doesn't exist yet
+npm run test:e2e
+```
+
+If your local Postgres uses different credentials than `.env.test`, override them via
+the shell, e.g. `DB_PASSWORD=your-password npm run test:e2e`. E2E specs run serially
+(`--runInBand`) because they share one database and truncate its tables between tests.
+
+CI runs lint, build, unit tests, and e2e tests (against a Postgres service container)
+on every push/PR touching `backend/**` — see `.github/workflows/backend-ci.yml`.
 
 ## Deployment
 

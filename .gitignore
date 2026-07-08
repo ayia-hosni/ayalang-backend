@@ -9,6 +9,7 @@ npm-debug.log
 # Env
 .env
 .env.*.local
+docker/configs/*.local
 
 # IDEs and editors
 .idea/
