@@ -10,4 +10,9 @@ until nc -z "${DB_HOST}" "${DB_PORT}"; do
 done
 echo "Postgres is up."
 
+if [ "${SEED_USERS:-false}" = "true" ]; then
+  echo "Seeding users..."
+  node dist/database/seed-users.js
+fi
+
 exec node dist/main.js

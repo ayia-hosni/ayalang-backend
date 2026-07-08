@@ -21,10 +21,13 @@ RUN npm ci --omit=dev
 FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
+RUN apk add --no-cache netcat-openbsd
 RUN addgroup -S nodejs && adduser -S nestjs -G nodejs
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY package.json ./
+COPY docker/entrypoints/backend-entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh && chown nestjs:nodejs ./entrypoint.sh
 USER nestjs
 EXPOSE 3000
-CMD ["node", "dist/main.js"]
+ENTRYPOINT ["./entrypoint.sh"]
