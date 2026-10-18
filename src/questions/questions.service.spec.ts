@@ -51,6 +51,34 @@ describe('QuestionsService', () => {
         order: { subQuestions: { orderIndex: 'ASC' } },
       });
     });
+
+    it('filters by track when provided', async () => {
+      repository.find!.mockResolvedValue([]);
+
+      await service.findAll('cat-1', 'Frontend');
+
+      expect(repository.find).toHaveBeenCalledWith({
+        where: { category: { id: 'cat-1' }, track: 'Frontend' },
+        relations: ['category'],
+        order: { subQuestions: { orderIndex: 'ASC' } },
+      });
+    });
+
+    it('filters by difficulty when provided', async () => {
+      repository.find!.mockResolvedValue([]);
+
+      await service.findAll('cat-1', 'Frontend', 'Junior');
+
+      expect(repository.find).toHaveBeenCalledWith({
+        where: {
+          category: { id: 'cat-1' },
+          track: 'Frontend',
+          difficulty: 'Junior',
+        },
+        relations: ['category'],
+        order: { subQuestions: { orderIndex: 'ASC' } },
+      });
+    });
   });
 
   describe('findOne', () => {
@@ -71,6 +99,63 @@ describe('QuestionsService', () => {
       repository.findOne!.mockResolvedValue(null);
 
       await expect(service.findOne('missing')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('getExampleAnswer', () => {
+    it('returns a random stored example answer', async () => {
+      const question = {
+        id: '1',
+        text: 'Tell me about yourself',
+        exampleAnswers: ['I am a great fit because...'],
+      } as Question;
+      repository.findOne!.mockResolvedValue(question);
+
+      const result = await service.getExampleAnswer('1');
+
+      expect(result).toEqual({
+        text: 'I am a great fit because...',
+        source: 'stored',
+      });
+    });
+
+    it('excludes the given answer when other options exist', async () => {
+      const question = {
+        id: '1',
+        text: 'Tell me about yourself',
+        exampleAnswers: ['Answer A', 'Answer B'],
+      } as Question;
+      repository.findOne!.mockResolvedValue(question);
+
+      const result = await service.getExampleAnswer('1', 'Answer A');
+
+      expect(result).toEqual({ text: 'Answer B', source: 'stored' });
+    });
+
+    it('falls back to the excluded answer when it is the only one stored', async () => {
+      const question = {
+        id: '1',
+        text: 'Tell me about yourself',
+        exampleAnswers: ['Only answer'],
+      } as Question;
+      repository.findOne!.mockResolvedValue(question);
+
+      const result = await service.getExampleAnswer('1', 'Only answer');
+
+      expect(result).toEqual({ text: 'Only answer', source: 'stored' });
+    });
+
+    it('throws NotFoundException when no example answers are stored', async () => {
+      const question = {
+        id: '1',
+        text: 'Tell me about yourself',
+        exampleAnswers: [],
+      } as unknown as Question;
+      repository.findOne!.mockResolvedValue(question);
+
+      await expect(service.getExampleAnswer('1')).rejects.toThrow(
         NotFoundException,
       );
     });

@@ -33,6 +33,22 @@ export class Recording {
   @Column({ type: 'int' })
   duration: number;
 
+  @Column({ type: 'text', nullable: true })
+  transcript: string | null;
+
+  @Column({ name: 'corrected_text', type: 'text', nullable: true })
+  correctedText: string | null;
+
+  @Column({ name: 'grammar_issues', type: 'jsonb', nullable: true })
+  grammarIssues: GrammarIssue[] | null;
+
   @CreateDateColumn()
   createdAt: Date;
+}
+
+export interface GrammarIssue {
+  message: string;
+  offset: number;
+  length: number;
+  replacements: string[];
 }

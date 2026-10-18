@@ -4,6 +4,8 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { RecordingsService } from './recordings.service';
 import { Recording } from './recording.entity';
 import { S3Service } from './s3.service';
+import { TranscriptionService } from './transcription.service';
+import { GrammarService } from './grammar.service';
 import { UsersService } from '../users/users.service';
 import {
   createMockRepository,
@@ -18,6 +20,8 @@ describe('RecordingsService', () => {
     getPlaybackUrl: jest.Mock;
     deleteAudio: jest.Mock;
   };
+  let transcriptionService: { transcribe: jest.Mock };
+  let grammarService: { check: jest.Mock };
   let usersService: { addXP: jest.Mock };
 
   beforeEach(async () => {
@@ -27,6 +31,8 @@ describe('RecordingsService', () => {
       getPlaybackUrl: jest.fn(),
       deleteAudio: jest.fn(),
     };
+    transcriptionService = { transcribe: jest.fn().mockResolvedValue(null) };
+    grammarService = { check: jest.fn().mockResolvedValue(null) };
     usersService = { addXP: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -34,6 +40,8 @@ describe('RecordingsService', () => {
         RecordingsService,
         { provide: getRepositoryToken(Recording), useValue: repository },
         { provide: S3Service, useValue: s3Service },
+        { provide: TranscriptionService, useValue: transcriptionService },
+        { provide: GrammarService, useValue: grammarService },
         { provide: UsersService, useValue: usersService },
       ],
     }).compile();
@@ -50,6 +58,9 @@ describe('RecordingsService', () => {
           createdAt: new Date('2026-01-01'),
           s3Key: 'recordings/user-1/a.webm',
           subQuestion: { id: 'sub-1' },
+          transcript: 'i has a bug',
+          correctedText: 'I have a bug',
+          grammarIssues: [],
         },
       ] as unknown as Recording[];
       repository.find!.mockResolvedValue(recordings);
@@ -69,6 +80,9 @@ describe('RecordingsService', () => {
           createdAt: new Date('2026-01-01'),
           subQuestionId: 'sub-1',
           playbackUrl: 'https://signed-url',
+          transcript: 'i has a bug',
+          correctedText: 'I have a bug',
+          grammarIssues: [],
         },
       ]);
     });
@@ -129,6 +143,9 @@ describe('RecordingsService', () => {
         subQuestion: { id: 'sub-1' },
         s3Key: 'recordings/user-1/new.webm',
         duration: 30,
+        transcript: null,
+        correctedText: null,
+        grammarIssues: null,
       });
       expect(usersService.addXP).toHaveBeenCalledWith('user-1', 25);
       expect(result).toEqual({
@@ -137,8 +154,77 @@ describe('RecordingsService', () => {
         createdAt: saved.createdAt,
         subQuestionId: 'sub-1',
         playbackUrl: 'https://signed-url',
+        transcript: undefined,
+        correctedText: undefined,
+        grammarIssues: undefined,
         totalXP: 125,
       });
+    });
+
+    it('transcribes the audio and stores grammar corrections when transcription succeeds', async () => {
+      const file = {
+        buffer: Buffer.from('audio'),
+        mimetype: 'audio/webm',
+      } as Express.Multer.File;
+      s3Service.uploadAudio.mockResolvedValue('recordings/user-1/new.webm');
+      transcriptionService.transcribe.mockResolvedValue('i has a bug');
+      grammarService.check.mockResolvedValue({
+        correctedText: 'I have a bug',
+        issues: [
+          { message: 'Grammar error', offset: 0, length: 4, replacements: ['I have'] },
+        ],
+      });
+      repository.create!.mockImplementation((input: unknown) => input);
+      repository.save!.mockImplementation((input: unknown) => ({
+        ...(input as object),
+        id: 'rec-2',
+        createdAt: new Date('2026-02-01'),
+      }));
+      usersService.addXP.mockResolvedValue({ totalXP: 125 });
+      s3Service.getPlaybackUrl.mockResolvedValue('https://signed-url');
+
+      const result = await service.create(
+        'user-1',
+        'question-1',
+        'sub-1',
+        30,
+        file,
+      );
+
+      expect(transcriptionService.transcribe).toHaveBeenCalledWith(
+        file.buffer,
+        file.mimetype,
+      );
+      expect(grammarService.check).toHaveBeenCalledWith('i has a bug');
+      expect(result).toMatchObject({
+        transcript: 'i has a bug',
+        correctedText: 'I have a bug',
+        grammarIssues: [
+          { message: 'Grammar error', offset: 0, length: 4, replacements: ['I have'] },
+        ],
+      });
+    });
+
+    it('skips the grammar check when transcription fails', async () => {
+      const file = {
+        buffer: Buffer.from('audio'),
+        mimetype: 'audio/webm',
+      } as Express.Multer.File;
+      s3Service.uploadAudio.mockResolvedValue('recordings/user-1/new.webm');
+      transcriptionService.transcribe.mockResolvedValue(null);
+      repository.create!.mockReturnValue({});
+      repository.save!.mockResolvedValue({
+        id: 'rec-2',
+        duration: 30,
+        createdAt: new Date('2026-02-01'),
+        s3Key: 'recordings/user-1/new.webm',
+      });
+      usersService.addXP.mockResolvedValue({ totalXP: 125 });
+      s3Service.getPlaybackUrl.mockResolvedValue('https://signed-url');
+
+      await service.create('user-1', 'question-1', 'sub-1', 30, file);
+
+      expect(grammarService.check).not.toHaveBeenCalled();
     });
 
     it('stores a null sub-question when none is provided', async () => {

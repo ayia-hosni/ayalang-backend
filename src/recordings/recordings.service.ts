@@ -7,6 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Recording } from './recording.entity';
 import { S3Service } from './s3.service';
+import { TranscriptionService } from './transcription.service';
+import { GrammarService } from './grammar.service';
 import { UsersService } from '../users/users.service';
 
 const XP_PER_RECORDING = 25;
@@ -17,6 +19,8 @@ export class RecordingsService {
     @InjectRepository(Recording)
     private readonly recordingsRepository: Repository<Recording>,
     private readonly s3Service: S3Service,
+    private readonly transcriptionService: TranscriptionService,
+    private readonly grammarService: GrammarService,
     private readonly usersService: UsersService,
   ) {}
 
@@ -33,6 +37,9 @@ export class RecordingsService {
         createdAt: recording.createdAt,
         subQuestionId: recording.subQuestion?.id ?? null,
         playbackUrl: await this.s3Service.getPlaybackUrl(recording.s3Key),
+        transcript: recording.transcript,
+        correctedText: recording.correctedText,
+        grammarIssues: recording.grammarIssues,
       })),
     );
   }
@@ -49,12 +56,24 @@ export class RecordingsService {
       file.buffer,
       file.mimetype,
     );
+
+    const transcript = await this.transcriptionService.transcribe(
+      file.buffer,
+      file.mimetype,
+    );
+    const grammarResult = transcript
+      ? await this.grammarService.check(transcript)
+      : null;
+
     const recording = this.recordingsRepository.create({
       user: { id: userId },
       question: { id: questionId },
       subQuestion: subQuestionId ? { id: subQuestionId } : null,
       s3Key,
       duration,
+      transcript,
+      correctedText: grammarResult?.correctedText ?? null,
+      grammarIssues: grammarResult?.issues ?? null,
     });
     const saved = await this.recordingsRepository.save(recording);
     const user = await this.usersService.addXP(userId, XP_PER_RECORDING);
@@ -64,6 +83,9 @@ export class RecordingsService {
       createdAt: saved.createdAt,
       subQuestionId,
       playbackUrl: await this.s3Service.getPlaybackUrl(saved.s3Key),
+      transcript: saved.transcript,
+      correctedText: saved.correctedText,
+      grammarIssues: saved.grammarIssues,
       totalXP: user.totalXP,
     };
   }

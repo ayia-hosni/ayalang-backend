@@ -35,6 +35,27 @@ services:
     networks:
       - aya-backend
 
+  # Free, self-hosted speech-to-text for recorded answers (no API key/cost).
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    restart: unless-stopped
+    environment:
+      ASR_MODEL: base.en
+      ASR_ENGINE: faster_whisper
+    ports:
+      - '9000:9000'
+    networks:
+      - aya-backend
+
+  # Free, self-hosted grammar checker for the transcribed answer text.
+  languagetool:
+    image: erikvl87/languagetool:latest
+    restart: unless-stopped
+    ports:
+      - '8010:8010'
+    networks:
+      - aya-backend
+
   frontend:
     build:
       context: ../frontend

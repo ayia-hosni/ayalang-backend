@@ -20,6 +20,18 @@ export class Question {
   @Column('text', { array: true, default: '{}' })
   hints: string[];
 
+  @Column('text', { array: true, default: '{}' })
+  exampleAnswers: string[];
+
+  @Column({ type: 'text', nullable: true })
+  track: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  stack: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  difficulty: string | null;
+
   @ManyToOne(() => Category, (category) => category.questions, {
     onDelete: 'CASCADE',
   })
