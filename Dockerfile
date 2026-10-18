@@ -28,6 +28,7 @@ COPY --from=build /app/dist ./dist
 COPY package.json ./
 COPY docker/entrypoints/backend-entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh && chown nestjs:nodejs ./entrypoint.sh
+RUN mkdir -p /data/recordings && chown nestjs:nodejs /data/recordings
 USER nestjs
 EXPOSE 3000
 ENTRYPOINT ["./entrypoint.sh"]

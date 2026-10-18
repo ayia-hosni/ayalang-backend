@@ -11,7 +11,7 @@ describe('TranscriptionService', () => {
 
   beforeEach(async () => {
     fetchMock.mockReset();
-    global.fetch = fetchMock as unknown as typeof fetch;
+    global.fetch = fetchMock;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

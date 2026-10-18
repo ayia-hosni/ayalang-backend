@@ -71,7 +71,7 @@ const SEED_DATA: {
           'Did they come around, and how do you know?',
         ],
         hints: [
-          "Name their actual objection instead of a strawman — it shows you understood their position.",
+          'Name their actual objection instead of a strawman — it shows you understood their position.',
           'Lead with data or a small proof-of-concept rather than just asserting you were right.',
           "Be honest if you only won them over partially, that's more credible than a clean win.",
         ],
@@ -374,7 +374,7 @@ const SEED_DATA: {
         hints: [
           "Prop-drilling is passing a value through several intermediate components that don't use it themselves, just to get it to a deeply nested child — it gets painful because every intermediate component now depends on props it doesn't care about.",
           'Options include a shared service/store injected where needed (DI), context/provider patterns, or a dedicated state library — the right one depends on how global and how often-changing the state is.',
-          "A useful rule: if only a component and its direct children need a value, keep it local; if unrelated branches of the tree need to react to the same value, it belongs in shared state.",
+          'A useful rule: if only a component and its direct children need a value, keep it local; if unrelated branches of the tree need to react to the same value, it belongs in shared state.',
         ],
         exampleAnswers: [
           'Prop-drilling means passing a value through many components that do not use it, just to reach one small component deep inside. This becomes painful because every component in between now depends on data it does not care about. Instead, I would use a shared service or store. Any component can read from it directly, no matter where it sits in the page. This removes the need to pass data through every level. I only move something into shared state when two separate parts of the app need to use the same value. If only one component and its direct children need a value, I keep it local. This keeps changes small and simple.',
@@ -444,7 +444,7 @@ const SEED_DATA: {
         stack: 'Angular',
         subQuestions: [
           "What does providedIn: 'root' actually give you?",
-          'What changes if you list the same service in a component\'s `providers` array instead?',
+          "What changes if you list the same service in a component's `providers` array instead?",
           'When would you deliberately choose the component-level option?',
         ],
         hints: [
@@ -469,7 +469,7 @@ const SEED_DATA: {
         hints: [
           'A computed property is cached and declarative — it recomputes only when one of its reactive dependencies changes, and always returns a value to use in the template.',
           "A watcher is for running a side effect in response to a change — like making an API call or mutating something outside Vue's reactive state — and doesn't return a value.",
-          "Using a watcher to derive a display value is awkward because you end up manually assigning to another reactive variable, duplicating what a computed property would give you for free with caching built in.",
+          'Using a watcher to derive a display value is awkward because you end up manually assigning to another reactive variable, duplicating what a computed property would give you for free with caching built in.',
         ],
         exampleAnswers: [
           "A computed property is saved and reused. It only runs again when one of the values it depends on actually changes. It always gives back a value that I can use directly in the page, like a full name made from a first name and last name. A watcher is different. It runs a side action when something changes, like calling an API, or changing something outside Vue's normal data system. A watcher does not give back a value. If I used a watcher just to build a display value, I would need to manually save it into another variable myself. This repeats work that a computed property already does for me, with saving and tracking built in.",
@@ -486,7 +486,7 @@ const SEED_DATA: {
           'What happens if you destructure a reactive object into plain variables, and how do you avoid it?',
         ],
         hints: [
-          "Vue 3 wraps a reactive object in a JavaScript Proxy, so every property get/set goes through a trap that lets Vue automatically track dependencies on read and trigger updates on write.",
+          'Vue 3 wraps a reactive object in a JavaScript Proxy, so every property get/set goes through a trap that lets Vue automatically track dependencies on read and trigger updates on write.',
           "Vue 2's Object.defineProperty-based reactivity couldn't detect new properties added after creation, or array index/length changes, without special-cased workarounds — the Proxy approach handles both natively.",
           'Destructuring a reactive object into plain variables copies out the current primitive values at that moment, losing the connection to the reactive object entirely — toRefs() preserves reactivity by converting each property into its own ref instead.',
         ],
@@ -506,7 +506,7 @@ const SEED_DATA: {
         hints: [
           'A typical order is: lint/typecheck → unit tests → build → run migrations against the target DB → deploy the new app version → smoke test.',
           'Running migrations as a distinct pipeline step (not on app boot) avoids multiple app instances racing to apply the same migration concurrently.',
-          "Favor backward-compatible, additive migrations so you can roll back the app version without also having to roll back the schema — a schema rollback under real traffic is much riskier.",
+          'Favor backward-compatible, additive migrations so you can roll back the app version without also having to roll back the schema — a schema rollback under real traffic is much riskier.',
         ],
         exampleAnswers: [
           'I would order the pipeline like this: check code style and types, run unit tests, build the app, run database migrations, deploy the new app, then run a quick check on the live site. I would run migrations as their own separate step, not automatically when the app starts. If migrations ran on app start, and we have more than one server starting at the same time, they could both try to run the same migration at once. That is a race condition I want to avoid. For rollback, I try to write migrations that only add things, and stay compatible with the old code. This way, if the new app code has a bug, I can roll back just the app, without also needing to undo the database change.',
@@ -524,7 +524,7 @@ const SEED_DATA: {
         hints: [
           'Blue-green keeps two full environments and switches all traffic at once via a router/load balancer flip; canary gradually shifts a small percentage of traffic to the new version and increases it over time.',
           'Blue-green gives instant, all-or-nothing rollback but does not catch bugs that only appear under partial real traffic or specific user segments.',
-          "Canary catches issues earlier with limited blast radius but needs good metrics/alerting to know when to stop the rollout, and takes longer to fully release.",
+          'Canary catches issues earlier with limited blast radius but needs good metrics/alerting to know when to stop the rollout, and takes longer to fully release.',
         ],
         exampleAnswers: [
           'Blue-green deployment keeps two full, identical setups running. When we are ready, we switch all traffic from the old one to the new one at once, using the load balancer. This gives a fast, clean way to go back if something goes wrong. Canary deployment is different. It sends only a small part of real traffic to the new version first, like 5%, then slowly more. This limits the damage if something is broken, since only a few users see it. I would choose canary over blue-green when a change feels risky, or hard to fully test before release. It catches problems early, with less damage, but it needs good monitoring to know when to stop, and it takes longer to reach all users.',
@@ -540,9 +540,9 @@ const SEED_DATA: {
           'What is a real risk or downside of IaC you would want a new team to know about?',
         ],
         hints: [
-          "Console changes are undocumented and easy to drift between environments — nobody can tell you exactly why a setting is what it is six months later.",
+          'Console changes are undocumented and easy to drift between environments — nobody can tell you exactly why a setting is what it is six months later.',
           'IaC turns infrastructure changes into a diff you can review in a pull request and revert with git, the same discipline you already apply to application code.',
-          "A real downside: state files can drift from real infrastructure if someone still makes manual changes, and a bad apply can affect many resources at once — IaC needs its own review discipline, not less.",
+          'A real downside: state files can drift from real infrastructure if someone still makes manual changes, and a bad apply can affect many resources at once — IaC needs its own review discipline, not less.',
         ],
         exampleAnswers: [
           'Setting up cloud resources by hand, by clicking in a console, can work fine for one person on one small project. But it does not grow well. Nobody can explain, six months later, why one setting exists. It also becomes easy for different environments to slowly become different from each other. With infrastructure as code, every change is written down and reviewed, just like a change to normal application code. If something goes wrong, we can undo it with a simple command. One real risk to know about: if someone still makes manual changes in the console, the saved code and the real setup can drift apart. Also, one small change in code can affect many resources at once. So this code needs careful review too, not less.',
@@ -756,9 +756,9 @@ const SEED_DATA: {
           'What does `/api/recordings/stats` actually return, despite its name?',
         ],
         hints: [
-          "`@OneToMany(..., { eager: true })` means every Question fetch anywhere in the app automatically joins and loads its sub-questions, whether the caller needs them or not.",
+          '`@OneToMany(..., { eager: true })` means every Question fetch anywhere in the app automatically joins and loads its sub-questions, whether the caller needs them or not.',
           'That is fine at small scale but becomes an over-fetch and potential N+1 risk once question lists or nesting grow, since callers have no way to opt out.',
-          "`/recordings/stats` sounds like it should return grouped analytics, but it just returns a single `{ totalCount }` from one COUNT(*) scoped to the current user — no grouping by category or question at all.",
+          '`/recordings/stats` sounds like it should return grouped analytics, but it just returns a single `{ totalCount }` from one COUNT(*) scoped to the current user — no grouping by category or question at all.',
         ],
         exampleAnswers: [
           'Because the sub-questions relation is marked as eager, every single time we load a Question anywhere in the app, it automatically also loads all of its sub-questions. This happens even in places that never actually use them, like a simple check to see if a question exists. This is fine and even helpful for the practice screen, which always needs the sub-questions. But everywhere else, it means loading more data than needed, and it could become a real performance problem if question lists grow bigger. There is currently no way for other parts of the code to skip this extra loading. The stats endpoint shows a similar pattern. Its name suggests it should return detailed numbers, grouped by category or question. But right now, it only returns one single total count for the logged-in user, with no grouping at all.',

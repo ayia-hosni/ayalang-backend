@@ -13,10 +13,7 @@ export class TranscriptionService {
     );
   }
 
-  async transcribe(
-    buffer: Buffer,
-    mimetype: string,
-  ): Promise<string | null> {
+  async transcribe(buffer: Buffer, mimetype: string): Promise<string | null> {
     try {
       const form = new FormData();
       form.append(

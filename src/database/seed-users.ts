@@ -7,19 +7,18 @@ import { User } from '../users/user.entity';
 
 const SALT_ROUNDS = 10;
 
-const SEED_USERS: { email: string; password: string; displayName: string }[] =
-  [
-    {
-      email: 'alex@example.com',
-      password: 'password123',
-      displayName: 'Alex Candidate',
-    },
-    {
-      email: 'sam@example.com',
-      password: 'password123',
-      displayName: 'Sam Candidate',
-    },
-  ];
+const SEED_USERS: { email: string; password: string; displayName: string }[] = [
+  {
+    email: 'alex@example.com',
+    password: 'password123',
+    displayName: 'Alex Candidate',
+  },
+  {
+    email: 'sam@example.com',
+    password: 'password123',
+    displayName: 'Sam Candidate',
+  },
+];
 
 async function seed() {
   const app = await NestFactory.createApplicationContext(AppModule);

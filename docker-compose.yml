@@ -27,11 +27,15 @@ services:
         required: false
     environment:
       DB_HOST: postgres
+      STORAGE_DRIVER: local
+      STORAGE_LOCAL_DIR: /data/recordings
     ports:
       - '127.0.0.1:3333:3000'
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - recordings_data:/data/recordings
     networks:
       - aya-backend
 
@@ -86,5 +90,6 @@ networks:
     driver: bridge
 
 volumes:
+  recordings_data:
   postgres_data:
   pgadmin_data:

@@ -171,7 +171,12 @@ describe('RecordingsService', () => {
       grammarService.check.mockResolvedValue({
         correctedText: 'I have a bug',
         issues: [
-          { message: 'Grammar error', offset: 0, length: 4, replacements: ['I have'] },
+          {
+            message: 'Grammar error',
+            offset: 0,
+            length: 4,
+            replacements: ['I have'],
+          },
         ],
       });
       repository.create!.mockImplementation((input: unknown) => input);
@@ -200,7 +205,12 @@ describe('RecordingsService', () => {
         transcript: 'i has a bug',
         correctedText: 'I have a bug',
         grammarIssues: [
-          { message: 'Grammar error', offset: 0, length: 4, replacements: ['I have'] },
+          {
+            message: 'Grammar error',
+            offset: 0,
+            length: 4,
+            replacements: ['I have'],
+          },
         ],
       });
     });
